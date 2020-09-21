@@ -9,7 +9,7 @@ import java.util.logging.Logger;
  *
  * @author bratizgut
  */
-public class App extends Thread {
+public class App {
 
     private Receiver reciever;
     private Sender sender;
@@ -26,22 +26,19 @@ public class App extends Thread {
         }
     }
 
-    @Override
     public void run() {
         try {
-            while (!isInterrupted()) {
+            while (true) {
                 sender.send("test message", reciever.getPort());
                 try {
                     reciever.check();
-                } catch (SocketTimeoutException ex) {
+                } catch (SocketTimeoutException ignored) {
                 }
                 if (status.isConnectionChanged()) {
                     status.printStatus();
                 }
                 status.updateStatus();
             }
-            reciever.close();
-            sender.close();
         } catch (IOException ex) {
             reciever.close();
             sender.close();
