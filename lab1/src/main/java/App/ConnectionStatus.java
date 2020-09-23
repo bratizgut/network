@@ -16,7 +16,7 @@ public class ConnectionStatus {
     int timeOutTime;
 
     public ConnectionStatus(int timeOutTime) {
-        connections = new LinkedHashMap<Client, Long>();
+        connections = new LinkedHashMap<>();
         this.timeOutTime = timeOutTime;
     }
 

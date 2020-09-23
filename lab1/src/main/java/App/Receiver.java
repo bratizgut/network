@@ -39,5 +39,5 @@ class Receiver {
     void close() {
         socket.close();
     }
-    
+
 }

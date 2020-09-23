@@ -2,6 +2,7 @@ package App;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,24 +12,36 @@ import java.util.logging.Logger;
  */
 public class App {
 
-    private Receiver reciever;
-    private Sender sender;
+    private final Receiver reciever;
+    private final Sender sender;
 
-    private ConnectionStatus status;
+    private final ConnectionStatus status;
 
-    public App(String IPaddress, int port) {
+    private Thread mainThread = Thread.currentThread();
+    private boolean isRunning = true;
+
+    public App(String IPaddress, int port) throws IOException {
         status = new ConnectionStatus(5000);
-        try {
-            reciever = new Receiver(status, IPaddress, port);
-            sender = new Sender(IPaddress);
-        } catch (IOException ex) {
-            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        reciever = new Receiver(status, IPaddress, port);
+        sender = new Sender(IPaddress);
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                isRunning = false;
+                try {
+                    mainThread.join();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
     }
 
     public void run() {
         try {
-            while (true) {
+            Scanner in = new Scanner(System.in);
+            while (isRunning) {
                 sender.send("test message", reciever.getPort());
                 try {
                     reciever.check();
@@ -38,11 +51,22 @@ public class App {
                     status.printStatus();
                 }
                 status.updateStatus();
+                if (System.in.available() > 0) {
+                    if (in.next().equals("end")) {
+                        break;
+                    }
+                }
             }
         } catch (IOException ex) {
-            reciever.close();
-            sender.close();
+            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeSockets();
         }
+    }
+
+    public void closeSockets() {
+        reciever.close();
+        sender.close();
     }
 
 }
