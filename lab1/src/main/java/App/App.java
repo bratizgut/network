@@ -57,6 +57,7 @@ public class App {
                     }
                 }
             }
+            in.close();
         } catch (IOException ex) {
             Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
