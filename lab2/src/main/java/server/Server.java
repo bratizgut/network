@@ -71,6 +71,8 @@ public class Server implements AutoCloseable {
         private final DataOutputStream outputStream;
 
         private File outFile;
+        private DigestOutputStream digestOutputStream;
+
         private final String ThreadName = this.getName();
 
         private final Thread thisThread;
@@ -87,6 +89,9 @@ public class Server implements AutoCloseable {
                 public void run() {
                     try {
                         close();
+                        if (digestOutputStream != null) {
+                            digestOutputStream.close();
+                        }
                         thisThread.join();
                     } catch (IOException | InterruptedException ex) {
                         Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
@@ -133,7 +138,7 @@ public class Server implements AutoCloseable {
                 createFile(fileName);
                 FileOutputStream fileOutputStream = new FileOutputStream(outFile);
                 MessageDigest md = MessageDigest.getInstance("MD5");
-                DigestOutputStream digestOutputStream = new DigestOutputStream(fileOutputStream, md);
+                digestOutputStream = new DigestOutputStream(fileOutputStream, md);
 
                 long startTime = System.currentTimeMillis();
                 long prevTime = startTime;
@@ -174,6 +179,9 @@ public class Server implements AutoCloseable {
         public void close() throws IOException {
             if (!socket.isClosed()) {
                 socket.close();
+                if (digestOutputStream != null) {
+                    digestOutputStream.close();
+                }
             }
         }
 
